@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.4.1.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.biomerieux</groupId>
+	<artifactId>loggedinusertest</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>loggedinusertest</name>
+	<description>Demo project for Spring Boot</description>
+	
+	<packaging>war</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <!-- SCP utils -->
+        <neo-maven.version>3.65.7</neo-maven.version>
+        <neo.version>3.65.7</neo.version>
+
+        <sap.cloud.host>eu1.hana.ondemand.com</sap.cloud.host>
+	</properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>tools</artifactId>
+                    <groupId>com.sun</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-core</artifactId>
+		</dependency>
+        <!-- SCP Utils -->
+        <dependency>
+            <groupId>com.sap.cloud</groupId>
+            <artifactId>neo-java-web-api</artifactId>
+            <version>${neo.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <changeLogFile>src/main/resources/config/liquibase/master.xml</changeLogFile>
+                    <diffChangeLogFile>
+                        src/main/resources/config/liquibase/changelog/${maven.build.timestamp}_changelog.xml
+                    </diffChangeLogFile>
+                    <driver>org.h2.Driver</driver>
+                    <url>jdbc:h2:tcp://localhost:9092/./target/h2db/db/tmp</url>
+                    <defaultSchemaName/>
+                    <username/>
+                    <password/>
+                    <verbose>true</verbose>
+                    <logging>debug</logging>
+                </configuration>
+            </plugin>
+        <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-war-plugin</artifactId>
+	    <configuration>
+	        <archive>                   
+	            <manifest>
+	                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+	                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+	            </manifest>
+	        </archive>
+	    </configuration>
+	</plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>dev.disabled</id>
+            <properties>
+                <!-- log configuration -->
+                <logback.loglevel>DEBUG</logback.loglevel>
+                <cxf.loglevel>INFO</cxf.loglevel>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- log configuration -->
+                <logback.loglevel>DEBUG</logback.loglevel>
+                <cxf.loglevel>INFO</cxf.loglevel>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>cloud-sandbox</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>false</executable>
+                            <arguments>
+                                <argument>--spring.profiles.active=cloud,cloud-sandbox</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.sap.cloud</groupId>
+                        <artifactId>neo-java-web-maven-plugin</artifactId>
+                        <version>${neo-maven.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install-sdk</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>install-sdk</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <!-- Choose a phase when to execute the goal -->
+                                <phase>install</phase>
+                                <goals>
+                                    <!-- Call the dedicated deploy goal of this plugin -->
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Location of the SAP Cloud Platform SDK for Neo environment -->
+                            <sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+
+                            <!-- WAR of the application under test -->
+                            <source>${project.build.directory}/${project.artifactId}.war</source>
+
+                            <!-- Configuration for local server -->
+                            <location>${project.build.directory}/sdk/server</location>
+
+                            <!-- Configuration for cloud deployment -->
+                            <mavenSettingsServerId>sap-hana-cloud-credentials</mavenSettingsServerId>
+                            <host>${sap.cloud.host}</host>
+                            <account>${sap.cloud.account}</account>
+                            <application>${project.artifactId}</application>
+                            <synchronous>true</synchronous>
+                            <vmArguments>-Dspring.profiles.active=cloud,cloud-sandbox -Dcom.sap.cloud.crypto.clientcert.mapping_mode=wholeCert -Dcom.sap.cloud.crypto.clientcert.keystore_name=CustomerOrderTrackingGW</vmArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <sap.cloud.account>ae729c0c8</sap.cloud.account>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>logback-classic</artifactId>
+                            <groupId>ch.qos.logback</groupId>
+                        </exclusion>
+                        <exclusion>
+                            <artifactId>slf4j-api</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>cloud-dev</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>false</executable>
+                            <arguments>
+                                <argument>--spring.profiles.active=cloud,cloud-dev</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.sap.cloud</groupId>
+                        <artifactId>neo-java-web-maven-plugin</artifactId>
+                        <version>${neo-maven.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install-sdk</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>install-sdk</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <!-- Choose a phase when to execute the goal -->
+                                <phase>install</phase>
+                                <goals>
+                                    <!-- Call the dedicated deploy goal of this plugin -->
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Location of the SAP Cloud Platform SDK for Neo environment -->
+                            <sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+
+                            <!-- WAR of the application under test -->
+                            <source>${project.build.directory}/${project.artifactId}.war</source>
+
+                            <!-- Configuration for local server -->
+                            <location>${project.build.directory}/sdk/server</location>
+
+                            <!-- Configuration for cloud deployment -->
+                            <mavenSettingsServerId>sap-hana-cloud-credentials</mavenSettingsServerId>
+                            <host>${sap.cloud.host}</host>
+                            <account>${sap.cloud.account}</account>
+                            <application>${project.artifactId}</application>
+                            <synchronous>true</synchronous>
+                            
+                            <vmArguments>-Dspring.profiles.active=cloud,cloud-dev -Dcom.sap.cloud.crypto.clientcert.mapping_mode=wholeCert -Dcom.sap.cloud.crypto.clientcert.keystore_name=CustomerOrderTrackingGW</vmArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <sap.cloud.account>ab54cfe76</sap.cloud.account>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>logback-classic</artifactId>
+                            <groupId>ch.qos.logback</groupId>
+                        </exclusion>
+                        <exclusion>
+                            <artifactId>slf4j-api</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>cloud-val</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>false</executable>
+                            <arguments>
+                                <argument>--spring.profiles.active=cloud,cloud-val</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.sap.cloud</groupId>
+                        <artifactId>neo-java-web-maven-plugin</artifactId>
+                        <version>${neo-maven.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install-sdk</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>install-sdk</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <!-- Choose a phase when to execute the goal -->
+                                <phase>install</phase>
+                                <goals>
+                                    <!-- Call the dedicated deploy goal of this plugin -->
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Location of the SAP Cloud Platform SDK for Neo environment -->
+                            <sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+
+                            <!-- WAR of the application under test -->
+                            <source>${project.build.directory}/${project.artifactId}.war</source>
+
+                            <!-- Configuration for local server -->
+                            <location>${project.build.directory}/sdk/server</location>
+
+                            <!-- Configuration for cloud deployment -->
+                            <mavenSettingsServerId>sap-hana-cloud-credentials</mavenSettingsServerId>
+                            <host>${sap.cloud.host}</host>
+                            <account>${sap.cloud.account}</account>
+                            <application>${project.artifactId}</application>
+                            <synchronous>true</synchronous>
+                            <vmArguments>-Dspring.profiles.active=cloud,cloud-val -Dcom.sap.cloud.crypto.clientcert.mapping_mode=wholeCert -Dcom.sap.cloud.crypto.clientcert.keystore_name=CustomerOrderTrackingGW</vmArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <sap.cloud.account>a0927a1e4</sap.cloud.account>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>logback-classic</artifactId>
+                            <groupId>ch.qos.logback</groupId>
+                        </exclusion>
+                        <exclusion>
+                            <artifactId>slf4j-api</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>cloud-prod</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>false</executable>
+                            <arguments>
+                                <argument>--spring.profiles.active=cloud,cloud-prod</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.sap.cloud</groupId>
+                        <artifactId>neo-java-web-maven-plugin</artifactId>
+                        <version>${neo-maven.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install-sdk</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>install-sdk</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <!-- Choose a phase when to execute the goal -->
+                                <phase>install</phase>
+                                <goals>
+                                    <!-- Call the dedicated deploy goal of this plugin -->
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- Location of the SAP Cloud Platform SDK for Neo environment -->
+                            <sdkInstallPath>${project.build.directory}/sdk</sdkInstallPath>
+
+                            <!-- WAR of the application under test -->
+                            <source>${project.build.directory}/${project.artifactId}.war</source>
+
+                            <!-- Configuration for local server -->
+                            <location>${project.build.directory}/sdk/server</location>
+
+                            <!-- Configuration for cloud deployment -->
+                            <mavenSettingsServerId>sap-hana-cloud-credentials</mavenSettingsServerId>
+                            <host>${sap.cloud.host}</host>
+                            <account>${sap.cloud.account}</account>
+                            <application>${project.artifactId}</application>
+                            <synchronous>true</synchronous>
+                            <vmArguments>-Dspring.profiles.active=cloud,cloud-prod -Dcom.sap.cloud.crypto.clientcert.mapping_mode=wholeCert -Dcom.sap.cloud.crypto.clientcert.keystore_name=CustomerOrderTrackingGW</vmArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <sap.cloud.account>a97433447</sap.cloud.account>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>logback-classic</artifactId>
+                            <groupId>ch.qos.logback</groupId>
+                        </exclusion>
+                        <exclusion>
+                            <artifactId>slf4j-api</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+		</repository>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>
