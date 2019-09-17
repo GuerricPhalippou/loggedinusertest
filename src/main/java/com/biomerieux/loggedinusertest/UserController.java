@@ -16,8 +16,21 @@ public class UserController {
 	
 	private final static Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
-	@RequestMapping(path = "/", produces = "application/json")
-	public @ResponseBody String getUser(HttpServletRequest request) throws Exception {
+	@RequestMapping(path = "/basic", produces = "application/json")
+	public @ResponseBody String basic(HttpServletRequest request) throws Exception {
+		try {
+			Principal principal = request.getUserPrincipal();
+            LOGGER.debug("User found" + principal.toString());
+            return principal.toString();
+          } 
+		catch (Exception e) {
+        	LOGGER.debug("User not found : " + e.getMessage());
+        	throw e;
+		}
+	}
+	
+	@RequestMapping(path = "/form", produces = "application/json")
+	public @ResponseBody String form(HttpServletRequest request) throws Exception {
 		try {
 			Principal principal = request.getUserPrincipal();
             LOGGER.debug("User found" + principal.toString());
