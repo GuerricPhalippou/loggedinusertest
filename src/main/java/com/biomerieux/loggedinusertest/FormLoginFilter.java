@@ -42,13 +42,13 @@ public class FormLoginFilter implements Filter {
 			throws IOException, ServletException {
 		String user = ((HttpServletRequest)request).getRemoteUser();
 	    if (user != null) {
-	      response.getWriter().println("Hello, " + user);
+	      chain.doFilter(request, response);
 	    } else {
 	      LoginContext loginContext;
 	      try {
 	        loginContext = LoginContextFactory.createLoginContext("FORM");
 	        loginContext.login();
-	        response.getWriter().println("Hello, " + ((HttpServletRequest)request).getRemoteUser());
+	        chain.doFilter(request, response);
 
 	      } catch (LoginException e) {
 	        e.printStackTrace();
