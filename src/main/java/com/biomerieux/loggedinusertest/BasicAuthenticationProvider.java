@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 
 import com.sap.security.auth.login.LoginContextFactory;
 
+/**
+ * 
+ * @author gphalippou
+ *
+ */
 @Component
 public class BasicAuthenticationProvider extends AbstractJaasAuthenticationProvider {
 	

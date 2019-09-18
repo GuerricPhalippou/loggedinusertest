@@ -7,8 +7,13 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-
+/**
+ * 
+ * @author gphalippou
+ *
+ */
 @Configuration
 @EnableWebSecurity
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
@@ -38,23 +43,14 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter{
     @Configuration
     @Order(2)
     public static class FormWebSecurityConfig extends WebSecurityConfigurerAdapter{
-
-    	@Autowired
-    	private FormAuthenticationProvider formAuthenticationProvider;
     	
-    	@Override
-        protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-            auth.authenticationProvider(formAuthenticationProvider);
-        }
+    	@Autowired
+    	private FormLoginFilter formLoginFilter;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.csrf().disable() //HTTP with Disable CSRF
-		            .antMatcher("/form")
-		            .authorizeRequests()
-		                .anyRequest().authenticated()
-		            .and()
-		            .formLogin();
+            http.csrf().disable().antMatcher("/form")
+            		.addFilterAfter(formLoginFilter, BasicAuthenticationFilter.class);
         }
     }
 }
