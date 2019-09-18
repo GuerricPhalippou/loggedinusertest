@@ -18,14 +18,16 @@ public class FormAuthenticationProvider extends AbstractJaasAuthenticationProvid
 	
 	private final static String FORM = "FORM";
 	{
-		setAuthorityGranters(new AuthorityGranter[] {new AuthorityGranter() {
+		setAuthorityGranters(new AuthorityGranter[] {
+			new AuthorityGranter() {
 
-			@Override
-			public Set<String> grant(Principal principal) {
-				// TODO Auto-generated method stub
-				return null;
+				@Override
+				public Set<String> grant(Principal principal) {
+					// TODO Auto-generated method stub
+					return null;
+				}
 			}
-		}});
+		});
 	}
 
 	@Override
