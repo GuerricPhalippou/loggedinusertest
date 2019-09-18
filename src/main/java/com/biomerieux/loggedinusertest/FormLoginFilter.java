@@ -41,21 +41,18 @@ public class FormLoginFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		String user = ((HttpServletRequest)request).getRemoteUser();
-	    if (user == null) {
+	    if (user != null) {
+	      response.getWriter().println("Hello, " + user);
+	    } else {
 	      LoginContext loginContext;
 	      try {
 	        loginContext = LoginContextFactory.createLoginContext("FORM");
 	        loginContext.login();
-	        LOGGER.debug("Login success: " + ((HttpServletRequest)request).getRemoteUser());
-	        chain.doFilter(request, response);
+	        response.getWriter().println("Hello, " + ((HttpServletRequest)request).getRemoteUser());
+
 	      } catch (LoginException e) {
-	        LOGGER.debug("Login error", e);
-	        request.setAttribute("errorMessage", e);
-			request.getRequestDispatcher("/WEB-INF/views/jsp/error.jsp")
-                               .forward(request, response);
+	        e.printStackTrace();
 	      }
-	    } else {
-	    	chain.doFilter(request, response);
 	    }
 		
 	}
